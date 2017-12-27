@@ -61,9 +61,10 @@ namespace Moonlight
             (await NvStreamDevice.DiscoverStreamDevices(CryptoProvider)).ForEach(StreamDevices.Add);
         }
 
-        private void StreamDevicesGridView_ItemClick(object sender, ItemClickEventArgs e)
+        private async void StreamDevicesGridView_ItemClick(object sender, ItemClickEventArgs e)
         {
             NvStreamDevice streamDevice = e.ClickedItem as NvStreamDevice;
+            await streamDevice.Pair();
             Frame.Navigate(typeof(ApplicationsPage), streamDevice);
         }
 
