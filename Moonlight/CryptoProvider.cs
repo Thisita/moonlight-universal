@@ -26,7 +26,7 @@ namespace Moonlight
         private const string CERTIFICATE_FILE_NAME = "client.crt";
         private static SecureRandom SecureRandom = new SecureRandom();
         private AsymmetricKeyParameter Key { get; set; }
-        private X509Certificate Certificate { get; set; }
+        public X509Certificate Certificate { get; private set; }
 
         public static byte[] GenerateRandomBytes(int length)
         {
@@ -50,17 +50,31 @@ namespace Moonlight
             return pin.ToString().PadLeft(4, '0');
         }
 
-        public static KeyParameter GenerateAesKey(bool enhancedSecurity, byte[] keyData)
+        public static byte[] GeneratePairingHash(bool enhancedSecurity, byte[] data)
         {
             // server major version 7+ uses SHA-256
             // else SHA-1
-            IDigest digest = DigestUtilities.GetDigest(enhancedSecurity?"SHA-256":"SHA-1");
-            digest.BlockUpdate(keyData, 0, keyData.Length);
+            IDigest digest = DigestUtilities.GetDigest(enhancedSecurity ? "SHA-256" : "SHA-1");
+            digest.BlockUpdate(data, 0, data.Length);
             byte[] hash = new byte[digest.GetDigestSize()];
             digest.DoFinal(hash, 0);
+            return hash;
+        }
+
+        public static KeyParameter GenerateAesKey(bool enhancedSecurity, byte[] keyData)
+        {
+            byte[] hash = GeneratePairingHash(enhancedSecurity, keyData);
             byte[] aesTruncated = new byte[16];
             Array.Copy(hash, aesTruncated, 16);
             return new KeyParameter(aesTruncated);
+        }
+
+        public static int GetDigestLength(bool enhancedSecurity)
+        {
+            // server major version 7+ uses SHA-256
+            // else SHA-1
+            IDigest digest = DigestUtilities.GetDigest(enhancedSecurity ? "SHA-256" : "SHA-1");
+            return digest.GetDigestSize();
         }
 
         public static byte[] DecryptData(byte[] encryptedData, KeyParameter key)
@@ -175,11 +189,39 @@ namespace Moonlight
                     Key = pemReader.ReadObject() as AsymmetricKeyParameter;
                 }
             }
-            catch(Exception)
+            catch(System.Exception)
             {
                 GenerateCertificate();
                 await Serialize();
             }
+        }
+
+        public static X509Certificate HexStringToX509Certificate(string hex)
+        {
+            byte[] data = StringToByteArray(hex);
+            string certificatePem = Encoding.UTF8.GetString(data);
+            using (TextReader textReader = new StringReader(certificatePem))
+            {
+                PemReader pemReader = new PemReader(textReader);
+                return pemReader.ReadObject() as X509Certificate;
+            }
+        }
+
+        public static byte[] StringToByteArray(String hex)
+        {
+            int NumberChars = hex.Length;
+            byte[] bytes = new byte[NumberChars / 2];
+            for (int i = 0; i < NumberChars; i += 2)
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            return bytes;
+        }
+
+        public static string ByteArrayToString(byte[] ba)
+        {
+            StringBuilder hex = new StringBuilder(ba.Length * 2);
+            foreach (byte b in ba)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
         }
     }
 }
