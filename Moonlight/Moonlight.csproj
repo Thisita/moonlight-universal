@@ -99,6 +99,12 @@
       <DependentUpon>ApplicationsPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="CryptoProvider.cs" />
+    <Compile Include="Exception\AlreadyPairedException.cs" />
+    <Compile Include="Exception\PairingException.cs" />
+    <Compile Include="Exception\PairingInProgressException.cs" />
+    <Compile Include="Exception\PairingPinException.cs" />
+    <Compile Include="Exception\PairingServerChallengeException.cs" />
+    <Compile Include="Exception\PairingUntrustedServerResponseException.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
