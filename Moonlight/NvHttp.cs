@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
+
 
 namespace Moonlight
 {
@@ -13,6 +16,7 @@ namespace Moonlight
     {
         public Guid Uuid { get; private set; }
         public HttpClient HttpClient { get; private set; }
+        public string DeviceName { get; private set; }
 
         public NvHttp(Uri baseAddress)
         {
@@ -21,6 +25,7 @@ namespace Moonlight
                 BaseAddress = baseAddress
             };
             Uuid = Guid.NewGuid();
+            DeviceName = Dns.GetHostName();
         }
 
         public NvHttp(Uri baseAddress, Guid uuid)
@@ -30,6 +35,7 @@ namespace Moonlight
                 BaseAddress = baseAddress
             };
             Uuid = uuid;
+            DeviceName = Dns.GetHostName();
         }
 
         public async Task<string> Cancel(Guid uniqueId)
@@ -54,25 +60,86 @@ namespace Moonlight
 
         public async Task<NvServerInfo> ServerInfo()
         {
-            using(Stream stream = await HttpClient.GetStreamAsync($"serverinfo"))
+            using (Stream stream = await HttpClient.GetStreamAsync($"serverinfo"))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(NvServerInfo));
-                return serializer.Deserialize(stream) as NvServerInfo;
+                using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(NvServerInfo));
+                    return serializer.Deserialize(reader) as NvServerInfo;
+                }
             }
         }
 
         public async Task<NvServerInfo> ServerInfo(Guid uniqueId)
         {
-            using (Stream stream = await HttpClient.GetStreamAsync($"serverinfo?uniqueid={uniqueId}&uuid={Uuid}?uniqueid={uniqueId}&uuid={Uuid}"))
+            using (Stream stream = await HttpClient.GetStreamAsync($"serverinfo?uniqueid={uniqueId}&uuid={Uuid}"))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(NvServerInfo));
-                return serializer.Deserialize(stream) as NvServerInfo;
+                using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(NvServerInfo));
+                    return serializer.Deserialize(reader) as NvServerInfo;
+                }
             }
         }
 
-        public async Task<NvPair> GetServerCert(byte[] salt, string v)
+        public async Task<NvPair> GetServerCert(Guid uniqueId, string salt, string clientCertificate)
         {
-            throw new NotImplementedException();
+            using (Stream stream = await HttpClient.GetStreamAsync($"pair?uniqueid={uniqueId}&uuid={Uuid}&devicename={DeviceName}&updateState=1&phrase=getservercert&salt={salt}&clientcert={clientCertificate}"))
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(NvPair));
+                    return serializer.Deserialize(reader) as NvPair;
+                }
+            }
+        }
+
+        public async Task<NvPair> GetChallengeResponse(Guid uniqueId, string clientChallenge)
+        {
+            using (Stream stream = await HttpClient.GetStreamAsync($"pair?uniqueid={uniqueId}&uuid={Uuid}&devicename={DeviceName}&updateState=1&clientchallenge={clientChallenge}"))
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(NvPair));
+                    return serializer.Deserialize(reader) as NvPair;
+                }
+            }
+        }
+
+        public async Task<NvPair> GetServerChallengeResponse(Guid uniqueId, string serverChallengeResponse)
+        {
+            using (Stream stream = await HttpClient.GetStreamAsync($"pair?uniqueid={uniqueId}&uuid={Uuid}&devicename={DeviceName}&updateState=1&serverchallengeresp={serverChallengeResponse}"))
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(NvPair));
+                    return serializer.Deserialize(reader) as NvPair;
+                }
+            }
+        }
+
+        public async Task<NvPair> GetClientPairingSecret(Guid uniqueId, string clientPairingSecret)
+        {
+            using (Stream stream = await HttpClient.GetStreamAsync($"pair?uniqueid={uniqueId}&uuid={Uuid}&devicename={DeviceName}&updateState=1&clientpairingsecret={clientPairingSecret}"))
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(NvPair));
+                    return serializer.Deserialize(reader) as NvPair;
+                }
+            }
+        }
+
+        public async Task<NvPair> GetPairChallenge(Guid uniqueId)
+        {
+            using (Stream stream = await HttpClient.GetStreamAsync($"pair?uniqueid={uniqueId}&uuid={Uuid}&devicename={DeviceName}&updateState=1&phrase=pairchallenge"))
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(NvPair));
+                    return serializer.Deserialize(reader) as NvPair;
+                }
+            }
         }
 
         public async Task<string> Unpair(Guid uniqueId)
