@@ -27,6 +27,7 @@ namespace Moonlight
         public NvServerInfo SecureServerInfo { get; private set; }
         public bool Online { get; private set; }
         public bool Offline { get { return !Online; } }
+        public NvServerInfo.NvPairStatus Paired { get; private set; }
         public bool EnhancedSecurity { get { return ServerInfo.AppVersion.CompareTo("7.0.0.0") >= 1; } }
 
         public NvStreamDevice(IPAddress ipAddress, CryptoProvider cryptoProvider)
@@ -35,6 +36,7 @@ namespace Moonlight
             CryptoProvider = cryptoProvider;
             NvHttp = new NvHttp(new Uri($"http://{IPAddress}:{HTTP_PORT}/"));
             Online = false;
+            Paired = NvServerInfo.NvPairStatus.Unpaired;
         }
 
         public async Task QueryDataInsecure()
@@ -42,6 +44,14 @@ namespace Moonlight
             ServerInfo = await NvHttp.ServerInfo();
             Online = true;
             InitializeSecureClient();
+            try
+            {
+                await QueryDataSecure();
+            }
+            catch (System.Exception)
+            {
+                Paired = ServerInfo.PairStatus;
+            }
         }
 
         private void InitializeSecureClient()
@@ -51,7 +61,8 @@ namespace Moonlight
 
         public async Task QueryDataSecure()
         {
-            SecureServerInfo = await SecureNvHttp.ServerInfo();
+            SecureServerInfo = await SecureNvHttp.ServerInfo(ServerInfo.UniqueId);
+            Paired = SecureServerInfo.PairStatus;
         }
 
         public async Task Pair()
