@@ -1,6 +1,7 @@
 ﻿version: 1.0.0.{build}
 configuration:
 - Debug
+- Release
 platform:
 - x86
 - x64
@@ -8,5 +9,3 @@ platform:
 install:
 before_build:
 build:
-parallel: true
-verbosity: minimal
