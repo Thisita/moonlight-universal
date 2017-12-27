@@ -1,0 +1,12 @@
+﻿version: 1.0.0.{build}
+configuration:
+- Debug
+platform:
+- x86
+- x64
+- ARM
+install:
+before_build:
+build:
+parallel: true
+verbosity: minimal
