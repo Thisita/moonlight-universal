@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace Moonlight
@@ -67,6 +68,6 @@ namespace Moonlight
         [XmlElement(ElementName = "state")]
         public string State { get; set; }
         [XmlElement(ElementName = "uniqueid")]
-        public string UniqueId { get; set; }
+        public Guid UniqueId { get; set; }
     }
 }
