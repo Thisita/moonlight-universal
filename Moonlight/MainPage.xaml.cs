@@ -88,17 +88,6 @@ namespace Moonlight
                 }
             }
         }
-
-        private async Task Debug(string content)
-        {
-            ContentDialog dialog = new ContentDialog()
-            {
-                Title = "Debug",
-                Content = content,
-                CloseButtonText = "Ok"
-            };
-            await dialog.ShowAsync();
-        }
     }
 
 }
