@@ -64,8 +64,29 @@ namespace Moonlight
         private async void StreamDevicesGridView_ItemClick(object sender, ItemClickEventArgs e)
         {
             NvStreamDevice streamDevice = e.ClickedItem as NvStreamDevice;
-            await streamDevice.Pair();
-            Frame.Navigate(typeof(ApplicationsPage), streamDevice);
+            if(streamDevice.Paired == NvServerInfo.NvPairStatus.Paired)
+            {
+                Frame.Navigate(typeof(ApplicationsPage), streamDevice);
+            }
+            else
+            {
+                try
+                {
+                    await streamDevice.Pair();
+                    Frame.Navigate(typeof(ApplicationsPage), streamDevice);
+                }
+                catch (PairingException)
+                {
+                    ContentDialog dialog = new ContentDialog()
+                    {
+                        Title = "Error",
+                        Content = $"Failed to pair with {streamDevice.ServerInfo.HostName}",
+                        CloseButtonText = "Ok"
+                    };
+                    await dialog.ShowAsync();
+                    return;
+                }
+            }
         }
 
         private async Task Debug(string content)
