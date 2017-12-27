@@ -50,7 +50,7 @@ namespace Moonlight
             SecureServerInfo = await SecureNvHttp.ServerInfo();
         }
 
-        public async Task<bool> Pair()
+        public async Task Pair()
         {
             // Generate salt for hashing the pin
             byte[] salt = CryptoProvider.GenerateRandomBytes(16);
