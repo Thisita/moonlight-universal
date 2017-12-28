@@ -9,6 +9,8 @@ using System.Xml;
 using System.Xml.Serialization;
 using Windows.Security.Cryptography.Certificates;
 using Windows.Storage;
+using Windows.Storage.Streams;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.Web.Http;
 using Windows.Web.Http.Filters;
 
@@ -39,6 +41,22 @@ namespace Moonlight
                 localSettings.Values["NvHttp.Uuid"] = Uuid;
             }
             DeviceName = Dns.GetHostName();
+        }
+
+        public async Task<NvApplicationList> ApplicationList(Guid uniqueId)
+        {
+            using (TextReader reader = new StringReader(await HttpClient.GetStringAsync(BuildUri($"applist?uniqueid={uniqueId}&uuid={Uuid}"))))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(NvApplicationList));
+                return serializer.Deserialize(reader) as NvApplicationList;
+            }
+        }
+
+        public async Task SaveBoxArt(Guid uniqueId, int applicationId)
+        {
+            StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
+            StorageFile tempFile = await tempFolder.CreateFileAsync($"{uniqueId}-{applicationId}-boxart.png", CreationCollisionOption.ReplaceExisting);
+            await FileIO.WriteBufferAsync(tempFile, await HttpClient.GetBufferAsync(BuildUri($"appasset?uniqueid={uniqueId}&uuid={Uuid}&appid={applicationId}&AssetType=2&AssetIdx=0")));
         }
 
         public async Task<string> Cancel(Guid uniqueId)
