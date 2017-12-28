@@ -66,7 +66,7 @@ namespace Moonlight
             byte[] hash = GeneratePairingHash(enhancedSecurity, keyData);
             byte[] aesTruncated = new byte[16];
             Array.Copy(hash, aesTruncated, 16);
-            return new KeyParameter(aesTruncated);
+            return ParameterUtilities.CreateKeyParameter("AES", aesTruncated);
         }
 
         public static int GetDigestLength(bool enhancedSecurity)
