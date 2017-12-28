@@ -46,7 +46,7 @@ namespace Moonlight
 
         private void InitializeSecureClient()
         {
-            SecureNvHttp = new NvHttp(new Uri($"https://{IPAddress}:{ServerInfo.HttpsPort}/"), NvHttp.Uuid);
+            SecureNvHttp = new NvHttp(new Uri($"https://{IPAddress}:{ServerInfo.HttpsPort}/"));
         }
 
         public async Task QueryDataSecure()

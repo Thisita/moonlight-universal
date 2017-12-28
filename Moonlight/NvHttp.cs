@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
-
+using Windows.Storage;
 
 namespace Moonlight
 {
@@ -24,17 +24,16 @@ namespace Moonlight
             {
                 BaseAddress = baseAddress
             };
-            Uuid = Guid.NewGuid();
-            DeviceName = Dns.GetHostName();
-        }
-
-        public NvHttp(Uri baseAddress, Guid uuid)
-        {
-            HttpClient = new HttpClient
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+            if(localSettings.Values.ContainsKey("NvHttp.Uuid"))
             {
-                BaseAddress = baseAddress
-            };
-            Uuid = uuid;
+                Uuid = (Guid)localSettings.Values["NvHttp.Uuid"];
+            }
+            else
+            {
+                Uuid = Guid.NewGuid();
+                localSettings.Values["NvHttp.Uuid"] = Uuid;
+            }
             DeviceName = Dns.GetHostName();
         }
 
