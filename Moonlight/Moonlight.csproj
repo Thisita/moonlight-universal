@@ -109,6 +109,8 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="NvApplication.cs" />
+    <Compile Include="NvApplicationList.cs" />
     <Compile Include="NvDisplayMode.cs" />
     <Compile Include="NvHttp.cs" />
     <Compile Include="NvPair.cs" />
