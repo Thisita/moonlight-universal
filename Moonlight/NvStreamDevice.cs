@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Windows.Storage;
 using Windows.UI.Xaml.Controls;
 using Zeroconf;
 
@@ -200,6 +201,22 @@ namespace Moonlight
 
             // Refresh secure data now that we are paired
             await QueryDataSecure();
+        }
+
+        public async Task<List<NvApplication>> GetApplications()
+        {
+            List<NvApplication> applications = (await SecureNvHttp.ApplicationList(SecureServerInfo.UniqueId)).Applications;
+
+            // Cache all of the box art
+            foreach (NvApplication application in applications)
+            {
+                await SecureNvHttp.SaveBoxArt(SecureServerInfo.UniqueId, application.ID);
+                StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
+                StorageFile tempFile = await tempFolder.GetFileAsync($"{SecureServerInfo.UniqueId}-{application.ID}-boxart.png");
+                application.BoxArt = tempFile.Path;
+            }
+
+            return applications;
         }
 
         public static async Task<List<NvStreamDevice>> DiscoverStreamDevices(CryptoProvider cryptoProvider)
