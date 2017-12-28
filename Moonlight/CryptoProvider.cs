@@ -80,15 +80,24 @@ namespace Moonlight
         public static byte[] DecryptData(byte[] encryptedData, KeyParameter key)
         {
             IBufferedCipher cipher = CipherUtilities.GetCipher(ENCRYPTION_ALGO);
+            int blockRoundedSize = ((encryptedData.Length + 15) / 16) * 16;
+            byte[] blockRoundedEncrypted = new byte[blockRoundedSize];
+            Array.Copy(encryptedData, blockRoundedEncrypted, blockRoundedSize);
+            byte[] fullDecrypted = new byte[blockRoundedSize];
+
             cipher.Init(false, key);
-            return cipher.DoFinal(encryptedData);
+            cipher.DoFinal(encryptedData, 0, blockRoundedSize, fullDecrypted, 0);
+            return fullDecrypted;
         }
 
         public static byte[] EncryptData(byte[] data, KeyParameter key)
         {
             IBufferedCipher cipher = CipherUtilities.GetCipher(ENCRYPTION_ALGO);
+            int blockRoundedSize = ((data.Length + 15) / 16) * 16;
+            byte[] blockRoundedData = new byte[blockRoundedSize];
+            Array.Copy(data, blockRoundedData, blockRoundedSize);
             cipher.Init(true, key);
-            return cipher.DoFinal(data);
+            return cipher.DoFinal(blockRoundedData);
         }
 
         public static bool VerifySignature(byte[] data, byte[] signature, X509Certificate certificate)
