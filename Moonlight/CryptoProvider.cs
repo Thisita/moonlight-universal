@@ -81,8 +81,7 @@ namespace Moonlight
         {
             IBufferedCipher cipher = CipherUtilities.GetCipher(ENCRYPTION_ALGO);
             int blockRoundedSize = ((encryptedData.Length + 15) / 16) * 16;
-            byte[] blockRoundedEncrypted = new byte[blockRoundedSize];
-            Array.Copy(encryptedData, blockRoundedEncrypted, blockRoundedSize);
+            byte[] blockRoundedEncrypted = CopyOfRange(encryptedData, 0, blockRoundedSize);
             byte[] fullDecrypted = new byte[blockRoundedSize];
 
             cipher.Init(false, key);
@@ -94,8 +93,7 @@ namespace Moonlight
         {
             IBufferedCipher cipher = CipherUtilities.GetCipher(ENCRYPTION_ALGO);
             int blockRoundedSize = ((data.Length + 15) / 16) * 16;
-            byte[] blockRoundedData = new byte[blockRoundedSize];
-            Array.Copy(data, blockRoundedData, blockRoundedSize);
+            byte[] blockRoundedData = CopyOfRange(data, 0, blockRoundedSize);
             cipher.Init(true, key);
             return cipher.DoFinal(blockRoundedData);
         }
@@ -231,6 +229,21 @@ namespace Moonlight
             foreach (byte b in ba)
                 hex.AppendFormat("{0:x2}", b);
             return hex.ToString();
+        }
+
+        public static byte[] ConcatBytes(byte[] a, byte[] b)
+        {
+            byte[] c = new byte[a.Length + b.Length];
+            Array.Copy(a, 0, c, 0, a.Length);
+            Array.Copy(b, 0, c, a.Length, b.Length);
+            return c;
+        }
+
+        public static byte[] CopyOfRange(byte[] a, int index, int length)
+        {
+            byte[] b = new byte[length];
+            Array.Copy(a, index, b, 0, length > a.Length ? a.Length : length);
+            return b;
         }
     }
 }
