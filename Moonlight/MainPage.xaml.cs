@@ -76,12 +76,12 @@ namespace Moonlight
                     await streamDevice.Pair();
                     Frame.Navigate(typeof(ApplicationsPage), streamDevice);
                 }
-                catch (PairingException)
+                catch (PairingException ex)
                 {
                     ContentDialog dialog = new ContentDialog()
                     {
                         Title = "Error",
-                        Content = $"Failed to pair with {streamDevice.ServerInfo.HostName}",
+                        Content = $"Failed to pair with {streamDevice.ServerInfo.HostName}\nReason: {ex.Message}",
                         CloseButtonText = "Ok"
                     };
                     await dialog.ShowAsync();
