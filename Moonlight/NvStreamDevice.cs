@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
@@ -87,13 +88,13 @@ namespace Moonlight
             await dialog.ShowAsync();
             // Send the salt and get server cert. This doesn't have read timeout
             // because the user must enter the PIN before the server responds
-            NvPair getServerCertResponse = await NvHttp.GetServerCert(ServerInfo.UniqueId, CryptoProvider.ByteArrayToString(salt), CryptoProvider.GetCertificatePem());
+            NvPair getServerCertResponse = await NvHttp.GetServerCert(ServerInfo.UniqueId, CryptoProvider.ByteArrayToString(salt), CryptoProvider.ByteArrayToString(Encoding.UTF8.GetBytes(CryptoProvider.GetCertificatePem())));
 
             // Check the pairing state
             if(getServerCertResponse.Paired != 1)
             {
                 await NvHttp.Unpair(ServerInfo.UniqueId);
-                throw new PairingException();
+                throw new PairingException($"Server certificate response paired value is {getServerCertResponse.Paired} instead of 1");
             }
 
             // Attempting to pair while another device is pairing will cause GFE
@@ -117,7 +118,7 @@ namespace Moonlight
             if(getChallengeResponse.Paired != 1)
             {
                 await NvHttp.Unpair(ServerInfo.UniqueId);
-                throw new PairingServerChallengeException();
+                throw new PairingServerChallengeException($"Challenge response paired value is {getChallengeResponse.Paired} instead of 1");
             }
 
             // Decrypte the server's response and subsequent challenge
@@ -125,19 +126,12 @@ namespace Moonlight
             byte[] decryptedServerChallengeResponse = CryptoProvider.DecryptData(encryptedServerChallengeResponse, aesKey);
 
             int hashLength = CryptoProvider.GetDigestLength(EnhancedSecurity);
-            byte[] serverResponse = new byte[hashLength];
-            byte[] serverChallenge = new byte[hashLength + 16];
-            Array.Copy(decryptedServerChallengeResponse, 0, serverResponse, 0, hashLength);
-            Array.Copy(decryptedServerChallengeResponse, hashLength, serverChallenge, 0, hashLength + 16);
+            byte[] serverResponse = CryptoProvider.CopyOfRange(decryptedServerChallengeResponse, 0, hashLength);
+            byte[] serverChallenge = CryptoProvider.CopyOfRange(decryptedServerChallengeResponse, hashLength, hashLength + 16);
 
             // Using another 16 byte secret, compute a challenge response hash using the secret, our cert sig, and the challenge
             byte[] clientSecret = CryptoProvider.GenerateRandomBytes(16);
-            byte[] clientCertificateSignature = CryptoProvider.Certificate.GetSignature();
-            byte[] concatenated = new byte[serverChallenge.Length + clientCertificateSignature.Length + clientSecret.Length];
-            Array.Copy(serverChallenge, 0, concatenated, 0, serverChallenge.Length);
-            Array.Copy(clientCertificateSignature, 0, concatenated, serverChallenge.Length, clientCertificateSignature.Length);
-            Array.Copy(clientSecret, 0, concatenated, serverChallenge.Length + clientCertificateSignature.Length, clientSecret.Length);
-            byte[] challengeResponseHash = CryptoProvider.GeneratePairingHash(EnhancedSecurity, concatenated);
+            byte[] challengeResponseHash = CryptoProvider.GeneratePairingHash(EnhancedSecurity, CryptoProvider.ConcatBytes(CryptoProvider.ConcatBytes(serverChallenge, CryptoProvider.Certificate.GetSignature()), clientSecret));
             byte[] challengeResponseEncrypted = CryptoProvider.EncryptData(challengeResponseHash, aesKey);
 
             NvPair getSecretResponse = await NvHttp.GetServerChallengeResponse(ServerInfo.UniqueId, CryptoProvider.ByteArrayToString(challengeResponseEncrypted));
@@ -146,49 +140,38 @@ namespace Moonlight
             if(getSecretResponse.Paired != 1)
             {
                 await NvHttp.Unpair(ServerInfo.UniqueId);
-                throw new PairingException();
+                throw new PairingException($"Secret response paired value is {getSecretResponse.Paired} instead of 1");
             }
 
             // Get the server's signed secret
             byte[] serverSecretResponse = CryptoProvider.StringToByteArray(getSecretResponse.PairingSecret);
-            byte[] serverSecret = new byte[16];
-            byte[] serverSignature = new byte[272];
-            Array.Copy(serverSecretResponse, 0, serverSecret, 0, 16);
-            Array.Copy(serverSecretResponse, 16, serverSignature, 0, 272);
+            byte[] serverSecret = CryptoProvider.CopyOfRange(serverSecretResponse, 0, 16);
+            byte[] serverSignature = CryptoProvider.CopyOfRange(serverSecretResponse, 16, 272);
 
             // Ensure authenticity
             if(!CryptoProvider.VerifySignature(serverSecret, serverSignature, serverCertificate))
             {
                 // Failed singature test so don't trust the server and cancel pairing
                 await NvHttp.Unpair(ServerInfo.UniqueId);
-                throw new PairingUntrustedServerResponseException();
+                throw new PairingUntrustedServerResponseException("Server failed signature test");
             }
 
             // Ensure the server challenge matched what we expected
-            byte[] serverCertificateSignature = serverCertificate.GetSignature();
-            byte[] serverChallengeHashData = new byte[randomChallenge.Length + serverCertificateSignature.Length + serverSecret.Length];
-            Array.Copy(randomChallenge, 0, serverChallengeHashData, 0, randomChallenge.Length);
-            Array.Copy(serverCertificateSignature, 0, serverChallengeHashData, randomChallenge.Length, serverCertificateSignature.Length);
-            Array.Copy(serverCertificateSignature, 0, serverChallengeHashData, randomChallenge.Length + serverCertificateSignature.Length, serverSecret.Length);
-            byte[] serverChallengeResponseHash = CryptoProvider.GeneratePairingHash(EnhancedSecurity, serverChallengeHashData);
+            byte[] serverChallengeResponseHash = CryptoProvider.GeneratePairingHash(EnhancedSecurity, CryptoProvider.ConcatBytes(CryptoProvider.ConcatBytes(randomChallenge, serverCertificate.GetSignature()), serverSecret));
             if(!serverChallengeResponseHash.SequenceEqual(serverResponse))
             {
                 await NvHttp.Unpair(ServerInfo.UniqueId);
                 // User probably inputed the wrong pin
-                throw new PairingPinException();
+                throw new PairingPinException($"Server challenge response hash {serverResponse} doesn't match expected value {challengeResponseHash}");
             }
 
             // Send the server our signed secret
-            byte[] clientSecretSignature = CryptoProvider.SignData(clientSecret);
-            byte[] clientPairingSecret = new byte[clientSecret.Length + clientSecretSignature.Length];
-            Array.Copy(clientSecret, 0, clientPairingSecret, 0, clientSecret.Length);
-            Array.Copy(clientSecretSignature, 0, clientPairingSecret, clientSecret.Length, clientSecretSignature.Length);
-
+            byte[] clientPairingSecret = CryptoProvider.ConcatBytes(clientSecret, CryptoProvider.SignData(clientSecret));
             NvPair getClientSecretResponse = await NvHttp.GetClientPairingSecret(ServerInfo.UniqueId, CryptoProvider.ByteArrayToString(clientPairingSecret));
             if(getClientSecretResponse.Paired != 1)
             {
                 await NvHttp.Unpair(ServerInfo.UniqueId);
-                throw new PairingException();
+                throw new PairingException($"Client secret response paired value is {getSecretResponse.Paired} instead of 1");
             }
 
             // Do the intiial challenge on secure channel
@@ -196,11 +179,8 @@ namespace Moonlight
             if(getPairChallenge.Paired != 1)
             {
                 await NvHttp.Unpair(ServerInfo.UniqueId);
-                throw new PairingException();
+                throw new PairingException($"Pair challenge response paired value is {getSecretResponse.Paired} instead of 1");
             }
-
-            // Refresh secure data now that we are paired
-            await QueryDataSecure();
         }
 
         public async Task<List<NvApplication>> GetApplications()
