@@ -193,7 +193,7 @@ namespace Moonlight
                 using (TextReader textReader = new StringReader(keyPem))
                 {
                     PemReader pemReader = new PemReader(textReader);
-                    Key = pemReader.ReadObject() as AsymmetricKeyParameter;
+                    Key = (pemReader.ReadObject() as AsymmetricCipherKeyPair).Private;
                 }
             }
             catch(System.Exception)
@@ -239,10 +239,10 @@ namespace Moonlight
             return c;
         }
 
-        public static byte[] CopyOfRange(byte[] a, int index, int length)
+        public static byte[] CopyOfRange(byte[] a, int from, int to)
         {
-            byte[] b = new byte[length];
-            Array.Copy(a, index, b, 0, length > a.Length ? a.Length : length);
+            byte[] b = new byte[to - from];
+            Array.Copy(a, from, b, 0, to - from);
             return b;
         }
     }
