@@ -171,7 +171,7 @@ namespace Moonlight
             if(getClientSecretResponse.Paired != 1)
             {
                 await NvHttp.Unpair(ServerInfo.UniqueId);
-                throw new PairingException($"Client secret response paired value is {getSecretResponse.Paired} instead of 1");
+                throw new PairingException($"Client secret response paired value is {getClientSecretResponse.Paired} instead of 1");
             }
 
             // Do the intiial challenge on secure channel
@@ -179,7 +179,7 @@ namespace Moonlight
             if(getPairChallenge.Paired != 1)
             {
                 await NvHttp.Unpair(ServerInfo.UniqueId);
-                throw new PairingException($"Pair challenge response paired value is {getSecretResponse.Paired} instead of 1");
+                throw new PairingException($"Pair challenge response paired value is {getPairChallenge.Paired} instead of 1");
             }
         }
 
