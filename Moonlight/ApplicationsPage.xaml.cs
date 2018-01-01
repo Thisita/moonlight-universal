@@ -53,6 +53,13 @@ namespace Moonlight
             ApplicationsGridView.ItemsSource = Applications;
             (await streamDevice.GetApplications()).ForEach(Applications.Add);
         }
+
+        private async void ApplicationsGridView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            NvApplication application = e.ClickedItem as NvApplication;
+            NvGameSession gameSession = await streamDevice.Launch(application);
+            Frame.Navigate(typeof(StreamDisplay), gameSession);
+        }
     }
 
 }

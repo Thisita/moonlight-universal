@@ -47,6 +47,6 @@
         <GridView x:Name="ApplicationsGridView"
                   Grid.Row="1"
                   ItemTemplate="{StaticResource ApplicationsGridView_DefaultItemTemplate}"
-                  IsItemClickEnabled="True"/>
+                  IsItemClickEnabled="True" ItemClick="ApplicationsGridView_ItemClick"/>
     </Grid>
 </Page>
