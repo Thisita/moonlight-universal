@@ -57,7 +57,7 @@ namespace Moonlight
         private async void ApplicationsGridView_ItemClick(object sender, ItemClickEventArgs e)
         {
             NvApplication application = e.ClickedItem as NvApplication;
-            NvGameSession gameSession = await streamDevice.Launch(application);
+            NvGameSession gameSession = await streamDevice.LaunchApplication(application);
             Frame.Navigate(typeof(StreamDisplay), gameSession);
         }
     }
