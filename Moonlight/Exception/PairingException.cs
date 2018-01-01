@@ -8,5 +8,16 @@ namespace Moonlight.Exception
 {
     public class PairingException : System.Exception
     {
+        public PairingException()
+        {
+        }
+
+        public PairingException(string message) : base(message)
+        {
+        }
+
+        public PairingException(string message, System.Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

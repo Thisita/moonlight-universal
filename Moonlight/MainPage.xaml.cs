@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Moonlight.Exception;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -64,19 +65,32 @@ namespace Moonlight
         private async void StreamDevicesGridView_ItemClick(object sender, ItemClickEventArgs e)
         {
             NvStreamDevice streamDevice = e.ClickedItem as NvStreamDevice;
-            await streamDevice.Pair();
-            Frame.Navigate(typeof(ApplicationsPage), streamDevice);
-        }
-
-        private async Task Debug(string content)
-        {
-            ContentDialog dialog = new ContentDialog()
+            if(streamDevice.Paired == NvServerInfo.NvPairStatus.Paired)
             {
-                Title = "Debug",
-                Content = content,
-                CloseButtonText = "Ok"
-            };
-            await dialog.ShowAsync();
+                Frame.Navigate(typeof(ApplicationsPage), streamDevice);
+            }
+            else
+            {
+                try
+                {
+                    await streamDevice.Pair();
+                    await streamDevice.QueryDataInsecure();
+                    if (streamDevice.Paired == NvServerInfo.NvPairStatus.Paired)
+                    {
+                        Frame.Navigate(typeof(ApplicationsPage), streamDevice);
+                    }
+                }
+                catch (PairingException ex)
+                {
+                    ContentDialog dialog = new ContentDialog()
+                    {
+                        Title = "Error",
+                        Content = $"Failed to pair with {streamDevice.ServerInfo.HostName}\nReason: {ex.Message}",
+                        CloseButtonText = "Ok"
+                    };
+                    await dialog.ShowAsync();
+                }
+            }
         }
     }
 

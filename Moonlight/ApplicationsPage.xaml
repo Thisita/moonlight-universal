@@ -6,6 +6,28 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+    <Page.Resources>
+        <DataTemplate x:Key="ApplicationsGridView_DefaultItemTemplate"
+                      x:DataType="local:NvApplication">
+            <Grid Height="300"
+                  Width="300"
+                  Margin="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Image x:Name="ApplicationBoxArt"
+                       Source="{x:Bind BoxArt}"
+                       Stretch="Uniform" />
+                <StackPanel Orientation="Vertical"
+                            Grid.Row="1">
+                    <TextBlock Text="{x:Bind Title}"
+                               HorizontalAlignment="Center"
+                               Style="{StaticResource SubtitleTextBlockStyle}" />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
@@ -24,6 +46,7 @@
                  HorizontalAlignment="Right"/>
         <GridView x:Name="ApplicationsGridView"
                   Grid.Row="1"
-                  IsItemClickEnabled="True"/>
+                  ItemTemplate="{StaticResource ApplicationsGridView_DefaultItemTemplate}"
+                  IsItemClickEnabled="True" ItemClick="ApplicationsGridView_ItemClick"/>
     </Grid>
 </Page>

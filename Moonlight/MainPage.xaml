@@ -27,7 +27,7 @@
                     <TextBlock Text="{x:Bind ServerInfo.GpuType}"
                                HorizontalAlignment="Center"
                                Style="{StaticResource CaptionTextBlockStyle}" />
-                    <TextBlock Text="{x:Bind ServerInfo.PairStatus}"
+                    <TextBlock Text="{x:Bind Paired}"
                                HorizontalAlignment="Center"
                                Style="{StaticResource CaptionTextBlockStyle}" />
                     <TextBlock Text="Online"

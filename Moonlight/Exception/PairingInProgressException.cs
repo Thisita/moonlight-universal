@@ -8,5 +8,16 @@ namespace Moonlight.Exception
 {
     public class PairingInProgressException : PairingException
     {
+        public PairingInProgressException()
+        {
+        }
+
+        public PairingInProgressException(string message) : base(message)
+        {
+        }
+
+        public PairingInProgressException(string message, System.Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

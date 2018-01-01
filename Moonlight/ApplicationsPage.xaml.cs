@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -27,30 +28,37 @@ namespace Moonlight
     {
         private NvStreamDevice streamDevice;
 
+        public ObservableCollection<NvApplication> Applications { get; } = new ObservableCollection<NvApplication>();
+
         public ApplicationsPage()
         {
             this.InitializeComponent();
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
             streamDevice = e.Parameter as NvStreamDevice;
-            if(streamDevice != null)
+            hostBox.Text = streamDevice.ServerInfo.HostName;
+
+            if(Applications.Count == 0)
             {
-                hostBox.Text = streamDevice.ServerInfo.HostName;
+                await GetItemsAsync();
             }
+
             base.OnNavigatedTo(e);
         }
 
-        private async Task Debug(string content)
+        private async Task GetItemsAsync()
         {
-            ContentDialog dialog = new ContentDialog()
-            {
-                Title = "Debug",
-                Content = content,
-                CloseButtonText = "Ok"
-            };
-            await dialog.ShowAsync();
+            ApplicationsGridView.ItemsSource = Applications;
+            (await streamDevice.GetApplications()).ForEach(Applications.Add);
+        }
+
+        private async void ApplicationsGridView_ItemClick(object sender, ItemClickEventArgs e)
+        {
+            NvApplication application = e.ClickedItem as NvApplication;
+            NvGameSession gameSession = await streamDevice.LaunchApplication(application);
+            Frame.Navigate(typeof(StreamDisplay), gameSession);
         }
     }
 

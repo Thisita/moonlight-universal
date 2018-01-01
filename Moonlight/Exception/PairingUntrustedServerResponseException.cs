@@ -8,5 +8,16 @@ namespace Moonlight.Exception
 {
     public class PairingUntrustedServerResponseException : PairingException
     {
+        public PairingUntrustedServerResponseException()
+        {
+        }
+
+        public PairingUntrustedServerResponseException(string message) : base(message)
+        {
+        }
+
+        public PairingUntrustedServerResponseException(string message, System.Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }
