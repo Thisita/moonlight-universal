@@ -41,29 +41,29 @@ namespace Moonlight
             Paired = NvServerInfo.NvPairStatus.Unpaired;
         }
 
+        public async Task Initialize()
+        {
+            await NvHttp.Initialize(CryptoProvider);
+        }
+
         public async Task QueryDataInsecure()
         {
             ServerInfo = await NvHttp.ServerInfo();
+            Paired = ServerInfo.PairStatus;
             Online = true;
-            InitializeSecureClient();
-            try
-            {
-                await QueryDataSecure();
-            }
-            catch (System.Exception)
-            {
-                Paired = ServerInfo.PairStatus;
-            }
+            await InitializeSecureClient();
+            await QueryDataSecure();
         }
 
-        private void InitializeSecureClient()
+        private async Task InitializeSecureClient()
         {
             SecureNvHttp = new NvHttp(new Uri($"https://{IPAddress}:{ServerInfo.HttpsPort}/"));
+            await SecureNvHttp.Initialize(CryptoProvider);
         }
 
         public async Task QueryDataSecure()
         {
-            SecureServerInfo = await SecureNvHttp.ServerInfo(ServerInfo.UniqueId);
+            SecureServerInfo = await SecureNvHttp.ServerInfo();
             Paired = SecureServerInfo.PairStatus;
         }
 
@@ -88,12 +88,12 @@ namespace Moonlight
             await dialog.ShowAsync();
             // Send the salt and get server cert. This doesn't have read timeout
             // because the user must enter the PIN before the server responds
-            NvPair getServerCertResponse = await NvHttp.GetServerCert(ServerInfo.UniqueId, CryptoProvider.ByteArrayToString(salt), CryptoProvider.ByteArrayToString(Encoding.UTF8.GetBytes(CryptoProvider.GetCertificatePem())));
+            NvPair getServerCertResponse = await NvHttp.GetServerCert(CryptoProvider.ByteArrayToString(salt), CryptoProvider.ByteArrayToString(Encoding.UTF8.GetBytes(CryptoProvider.GetCertificatePem())));
 
             // Check the pairing state
             if(getServerCertResponse.Paired != 1)
             {
-                await NvHttp.Unpair(ServerInfo.UniqueId);
+                await NvHttp.Unpair();
                 throw new PairingException($"Server certificate response paired value is {getServerCertResponse.Paired} instead of 1");
             }
 
@@ -112,12 +112,12 @@ namespace Moonlight
             byte[] encryptedChallenge = CryptoProvider.EncryptData(randomChallenge, aesKey);
 
             // Send the encrypted challenge to the server
-            NvPair getChallengeResponse = await NvHttp.GetChallengeResponse(ServerInfo.UniqueId, CryptoProvider.ByteArrayToString(encryptedChallenge));
+            NvPair getChallengeResponse = await NvHttp.GetChallengeResponse(CryptoProvider.ByteArrayToString(encryptedChallenge));
             
             // Check the pairing state
             if(getChallengeResponse.Paired != 1)
             {
-                await NvHttp.Unpair(ServerInfo.UniqueId);
+                await NvHttp.Unpair();
                 throw new PairingServerChallengeException($"Challenge response paired value is {getChallengeResponse.Paired} instead of 1");
             }
 
@@ -134,12 +134,12 @@ namespace Moonlight
             byte[] challengeResponseHash = CryptoProvider.GeneratePairingHash(EnhancedSecurity, CryptoProvider.ConcatBytes(CryptoProvider.ConcatBytes(serverChallenge, CryptoProvider.Certificate.GetSignature()), clientSecret));
             byte[] challengeResponseEncrypted = CryptoProvider.EncryptData(challengeResponseHash, aesKey);
 
-            NvPair getSecretResponse = await NvHttp.GetServerChallengeResponse(ServerInfo.UniqueId, CryptoProvider.ByteArrayToString(challengeResponseEncrypted));
+            NvPair getSecretResponse = await NvHttp.GetServerChallengeResponse(CryptoProvider.ByteArrayToString(challengeResponseEncrypted));
 
             // Check that there isn't a state error
             if(getSecretResponse.Paired != 1)
             {
-                await NvHttp.Unpair(ServerInfo.UniqueId);
+                await NvHttp.Unpair();
                 throw new PairingException($"Secret response paired value is {getSecretResponse.Paired} instead of 1");
             }
 
@@ -152,7 +152,7 @@ namespace Moonlight
             if(!CryptoProvider.VerifySignature(serverSecret, serverSignature, serverCertificate))
             {
                 // Failed singature test so don't trust the server and cancel pairing
-                await NvHttp.Unpair(ServerInfo.UniqueId);
+                await NvHttp.Unpair();
                 throw new PairingUntrustedServerResponseException("Server failed signature test");
             }
 
@@ -160,32 +160,32 @@ namespace Moonlight
             byte[] serverChallengeResponseHash = CryptoProvider.GeneratePairingHash(EnhancedSecurity, CryptoProvider.ConcatBytes(CryptoProvider.ConcatBytes(randomChallenge, serverCertificate.GetSignature()), serverSecret));
             if(!serverChallengeResponseHash.SequenceEqual(serverResponse))
             {
-                await NvHttp.Unpair(ServerInfo.UniqueId);
+                await NvHttp.Unpair();
                 // User probably inputed the wrong pin
                 throw new PairingPinException($"Server challenge response hash {serverResponse} doesn't match expected value {challengeResponseHash}");
             }
 
             // Send the server our signed secret
             byte[] clientPairingSecret = CryptoProvider.ConcatBytes(clientSecret, CryptoProvider.SignData(clientSecret));
-            NvPair getClientSecretResponse = await NvHttp.GetClientPairingSecret(ServerInfo.UniqueId, CryptoProvider.ByteArrayToString(clientPairingSecret));
+            NvPair getClientSecretResponse = await NvHttp.GetClientPairingSecret(CryptoProvider.ByteArrayToString(clientPairingSecret));
             if(getClientSecretResponse.Paired != 1)
             {
-                await NvHttp.Unpair(ServerInfo.UniqueId);
+                await NvHttp.Unpair();
                 throw new PairingException($"Client secret response paired value is {getClientSecretResponse.Paired} instead of 1");
             }
 
             // Do the intiial challenge on secure channel
-            NvPair getPairChallenge = await SecureNvHttp.GetPairChallenge(ServerInfo.UniqueId);
+            NvPair getPairChallenge = await SecureNvHttp.GetPairChallenge();
             if(getPairChallenge.Paired != 1)
             {
-                await NvHttp.Unpair(ServerInfo.UniqueId);
+                await NvHttp.Unpair();
                 throw new PairingException($"Pair challenge response paired value is {getPairChallenge.Paired} instead of 1");
             }
         }
 
         public async Task<List<NvApplication>> GetApplications()
         {
-            List<NvApplication> applications = (await SecureNvHttp.ApplicationList(SecureServerInfo.UniqueId)).Applications;
+            List<NvApplication> applications = (await SecureNvHttp.ApplicationList()).Applications;
 
             // Cache all of the box art
             foreach (NvApplication application in applications)
@@ -210,6 +210,7 @@ namespace Moonlight
                 {
                     Online = true
                 };
+                await streamDevice.Initialize();
                 await streamDevice.QueryDataInsecure();
                 streamDevices.Add(streamDevice);
             }
