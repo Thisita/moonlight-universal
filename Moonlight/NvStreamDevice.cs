@@ -199,6 +199,11 @@ namespace Moonlight
             return applications;
         }
 
+        public async Task<NvGameSession> LaunchApplication(NvApplication application)
+        {
+            return await SecureNvHttp.Launch(application.ID, string.Empty, 0, 1, string.Empty, 0, 0, 0);
+        }
+
         public static async Task<List<NvStreamDevice>> DiscoverStreamDevices(CryptoProvider cryptoProvider)
         {
             List<NvStreamDevice> streamDevices = new List<NvStreamDevice>();
