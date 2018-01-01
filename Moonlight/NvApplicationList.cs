@@ -19,6 +19,7 @@ namespace Moonlight
         [XmlAttribute("status_message")]
         public string StatusMessage { get; set; }
 
+        [XmlElement(ElementName = "App")]
         public List<NvApplication> Applications { get; set; }
     }
 }
