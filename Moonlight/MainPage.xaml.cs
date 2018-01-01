@@ -74,7 +74,11 @@ namespace Moonlight
                 try
                 {
                     await streamDevice.Pair();
-                    Frame.Navigate(typeof(ApplicationsPage), streamDevice);
+                    await streamDevice.QueryDataInsecure();
+                    if (streamDevice.Paired == NvServerInfo.NvPairStatus.Paired)
+                    {
+                        Frame.Navigate(typeof(ApplicationsPage), streamDevice);
+                    }
                 }
                 catch (PairingException ex)
                 {
@@ -85,7 +89,6 @@ namespace Moonlight
                         CloseButtonText = "Ok"
                     };
                     await dialog.ShowAsync();
-                    return;
                 }
             }
         }
