@@ -52,6 +52,7 @@
         </Grid.RowDefinitions>
         <GridView x:Name="StreamDevicesGridView"
                   Grid.Row="0"
+                  Padding="10,10,10,0"
                   ItemTemplate="{StaticResource StreamDevicesGridView_DefaultItemTemplate}"
                   ItemClick="StreamDevicesGridView_ItemClick"
                   IsItemClickEnabled="True"/>
