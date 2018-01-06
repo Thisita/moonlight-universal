@@ -58,7 +58,7 @@ namespace Moonlight
         {
             NvApplication application = e.ClickedItem as NvApplication;
             NvGameSession gameSession = await ViewModel.StreamDevice.LaunchApplication(application);
-            Frame.Navigate(typeof(StreamDisplay), gameSession);
+            Frame.Navigate(typeof(StreamPage), gameSession);
         }
     }
 

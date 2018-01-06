@@ -21,11 +21,11 @@ namespace Moonlight
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class StreamDisplay : Page
+    public sealed partial class StreamPage : Page
     {
         public NvGameSession gameSession;
 
-        public StreamDisplay()
+        public StreamPage()
         {
             this.InitializeComponent();
         }
