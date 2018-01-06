@@ -31,7 +31,7 @@ namespace Moonlight
     public sealed partial class MainPage : Page
     {
         private CryptoProvider CryptoProvider { get; set; }
-        public MainViewModel ViewModel { get; set; }
+        public MainViewModel ViewModel { get; private set; }
 
         public MainPage()
         {
