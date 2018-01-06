@@ -31,11 +31,11 @@ namespace Moonlight
     public sealed partial class MainPage : Page
     {
         private CryptoProvider CryptoProvider { get; set; }
-
-        public ObservableCollection<NvStreamDevice> StreamDevices { get; } = new ObservableCollection<NvStreamDevice>();
+        public MainViewModel ViewModel { get; set; }
 
         public MainPage()
         {
+            ViewModel = new MainViewModel();
             this.InitializeComponent();
         }
 
@@ -48,7 +48,7 @@ namespace Moonlight
             CryptoProvider = new CryptoProvider();
             await CryptoProvider.Initialize();
 
-            if(StreamDevices.Count == 0)
+            if(ViewModel.StreamDevices.Count == 0)
             {
                 await GetItemsAsync();
             }
@@ -58,8 +58,10 @@ namespace Moonlight
 
         private async Task GetItemsAsync()
         {
-            StreamDevicesGridView.ItemsSource = StreamDevices;
-            (await NvStreamDevice.DiscoverStreamDevices(CryptoProvider)).ForEach(StreamDevices.Add);
+            StreamDevicesGridView.ItemsSource = ViewModel.StreamDevices;
+            ViewModel.IsSearching = true;
+            (await NvStreamDevice.DiscoverStreamDevices(CryptoProvider)).ForEach(ViewModel.StreamDevices.Add);
+            ViewModel.IsSearching = false;
         }
 
         private async void StreamDevicesGridView_ItemClick(object sender, ItemClickEventArgs e)

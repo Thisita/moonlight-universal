@@ -47,27 +47,21 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
+            <RowDefinition />
             <RowDefinition Height="Auto" />
-            <RowDefinition/>
         </Grid.RowDefinitions>
-        <Image x:Name="MoonlightBrandingImage"
-               Source="Assets/StoreLogo.png"
-               Width="32"
-               Height="32"
-               HorizontalAlignment="Left"/>
-        <TextBlock x:Name="MoonlightBrandingText"
-                   Text="Moonlight"
-                   HorizontalAlignment="Left"
-                   Margin="40,0,0,0"
-                   Style="{StaticResource TitleTextBlockStyle}"/>
-        <TextBox x:Name="hostBox"
-                 MaxLength="24"
-                 PlaceholderText="Enter host name or IP address"
-                 HorizontalAlignment="Right"/>
         <GridView x:Name="StreamDevicesGridView"
-                  Grid.Row="1"
+                  Grid.Row="0"
                   ItemTemplate="{StaticResource StreamDevicesGridView_DefaultItemTemplate}"
                   ItemClick="StreamDevicesGridView_ItemClick"
                   IsItemClickEnabled="True"/>
+        <StackPanel Visibility="{x:Bind ViewModel.IsSearching, Mode=OneWay}"
+            Grid.Row="1"
+            Width="Auto"
+            HorizontalAlignment="Center"
+            Padding="10,10,10,10">
+            <TextBlock Text="Searching for NVIDIA GameStream devices" />
+            <ProgressBar IsIndeterminate="True" />
+        </StackPanel>
     </Grid>
 </Page>
