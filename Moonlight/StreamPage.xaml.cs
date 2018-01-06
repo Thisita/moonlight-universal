@@ -23,16 +23,17 @@ namespace Moonlight
     /// </summary>
     public sealed partial class StreamPage : Page
     {
-        public NvGameSession gameSession;
+        public StreamViewModel ViewModel { get; private set; }
 
         public StreamPage()
         {
+            ViewModel = new StreamViewModel();
             this.InitializeComponent();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            gameSession = e.Parameter as NvGameSession;
+            ViewModel.GameSession = e.Parameter as NvGameSession;
             base.OnNavigatedTo(e);
         }
     }

@@ -102,8 +102,8 @@
     <Compile Include="ApplicationsViewModel.cs" />
     <Compile Include="MainViewModel.cs" />
     <Compile Include="NvGameSession.cs" />
-    <Compile Include="StreamDisplay.xaml.cs">
-      <DependentUpon>StreamDisplay.xaml</DependentUpon>
+    <Compile Include="StreamPage.xaml.cs">
+      <DependentUpon>StreamPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="CryptoProvider.cs" />
     <Compile Include="Exception\AlreadyPairedException.cs" />
@@ -123,6 +123,7 @@
     <Compile Include="NvServerInfo.cs" />
     <Compile Include="NvStreamDevice.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StreamViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -150,7 +151,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="StreamDisplay.xaml">
+    <Page Include="StreamPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

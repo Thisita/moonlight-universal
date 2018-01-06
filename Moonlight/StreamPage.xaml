@@ -8,6 +8,19 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <MediaElement Source="{x:Bind gameSession.StreamUrl}" />
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <MediaElement Source="{x:Bind ViewModel.GameSession.StreamUrl, Mode=OneWay}"
+                      Grid.Row="0" />
+        <StackPanel Visibility="{x:Bind ViewModel.IsConnecting, Mode=OneWay}"
+            Grid.Row="1"
+            Width="Auto"
+            HorizontalAlignment="Center"
+            Padding="10,10,10,10">
+            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus}" />
+            <ProgressBar IsIndeterminate="True" />
+        </StackPanel>
     </Grid>
 </Page>
