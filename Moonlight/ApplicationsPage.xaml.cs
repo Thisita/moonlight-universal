@@ -26,21 +26,19 @@ namespace Moonlight
     /// </summary>
     public sealed partial class ApplicationsPage : Page
     {
-        private NvStreamDevice streamDevice;
-
-        public ObservableCollection<NvApplication> Applications { get; } = new ObservableCollection<NvApplication>();
+        public ApplicationsViewModel ViewModel { get; private set; }
 
         public ApplicationsPage()
         {
+            ViewModel = new ApplicationsViewModel();
             this.InitializeComponent();
         }
 
         protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
-            streamDevice = e.Parameter as NvStreamDevice;
-            hostBox.Text = streamDevice.ServerInfo.HostName;
+            ViewModel.StreamDevice = e.Parameter as NvStreamDevice;
 
-            if(Applications.Count == 0)
+            if(ViewModel.Applications.Count == 0)
             {
                 await GetItemsAsync();
             }
@@ -50,14 +48,16 @@ namespace Moonlight
 
         private async Task GetItemsAsync()
         {
-            ApplicationsGridView.ItemsSource = Applications;
-            (await streamDevice.GetApplications()).ForEach(Applications.Add);
+            ApplicationsGridView.ItemsSource = ViewModel.Applications;
+            ViewModel.IsSearching = true;
+            (await ViewModel.StreamDevice.GetApplications()).ForEach(ViewModel.Applications.Add);
+            ViewModel.IsSearching = false;
         }
 
         private async void ApplicationsGridView_ItemClick(object sender, ItemClickEventArgs e)
         {
             NvApplication application = e.ClickedItem as NvApplication;
-            NvGameSession gameSession = await streamDevice.LaunchApplication(application);
+            NvGameSession gameSession = await ViewModel.StreamDevice.LaunchApplication(application);
             Frame.Navigate(typeof(StreamDisplay), gameSession);
         }
     }

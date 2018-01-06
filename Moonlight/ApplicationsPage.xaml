@@ -33,20 +33,28 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition/>
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Image x:Name="MoonlightBrandingImage"
-               Source="Assets/StoreLogo.png" Width="32" Height="32" HorizontalAlignment="Left"/>
-        <TextBlock x:Name="MoonlightBrandingText"
-                   Text="Moonlight"
-                   HorizontalAlignment="Left"
-                   Margin="40,0,0,0"
-                   Style="{StaticResource TitleTextBlockStyle}"/>
-        <TextBox x:Name="hostBox"
-                 MaxLength="24"
-                 HorizontalAlignment="Right"/>
+        <TextBlock
+            Grid.Row="0"
+            HorizontalAlignment="Center"
+            Padding="10,10,10,10"
+            Style="{StaticResource TitleTextBlockStyle}">
+            <Run>Apps on</Run>
+            <Run Text="{x:Bind ViewModel.StreamDevice.ServerInfo.HostName}" />
+        </TextBlock>
         <GridView x:Name="ApplicationsGridView"
                   Grid.Row="1"
+                  Padding="10,10,10,10"
                   ItemTemplate="{StaticResource ApplicationsGridView_DefaultItemTemplate}"
                   IsItemClickEnabled="True" ItemClick="ApplicationsGridView_ItemClick"/>
+        <StackPanel Visibility="{x:Bind ViewModel.IsSearching, Mode=OneWay}"
+            Grid.Row="2"
+            Width="Auto"
+            HorizontalAlignment="Center"
+            Padding="10,10,10,10">
+            <TextBlock Text="Retriving available apps" />
+            <ProgressBar IsIndeterminate="True" />
+        </StackPanel>
     </Grid>
 </Page>

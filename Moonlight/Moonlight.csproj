@@ -99,6 +99,7 @@
     <Compile Include="ApplicationsPage.xaml.cs">
       <DependentUpon>ApplicationsPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ApplicationsViewModel.cs" />
     <Compile Include="MainViewModel.cs" />
     <Compile Include="NvGameSession.cs" />
     <Compile Include="StreamDisplay.xaml.cs">
