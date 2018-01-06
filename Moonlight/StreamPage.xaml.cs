@@ -21,18 +21,19 @@ namespace Moonlight
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class StreamDisplay : Page
+    public sealed partial class StreamPage : Page
     {
-        public NvGameSession gameSession;
+        public StreamViewModel ViewModel { get; private set; }
 
-        public StreamDisplay()
+        public StreamPage()
         {
+            ViewModel = new StreamViewModel();
             this.InitializeComponent();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            gameSession = e.Parameter as NvGameSession;
+            ViewModel.GameSession = e.Parameter as NvGameSession;
             base.OnNavigatedTo(e);
         }
     }
