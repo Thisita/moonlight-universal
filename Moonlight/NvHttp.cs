@@ -102,11 +102,6 @@ namespace Moonlight
             }
         }
 
-        public async Task<string> Pair(string deviceName, int updateState, string phrase, string salt, string clientCert)
-        {
-            return await HttpClient.GetStringAsync(BuildUri($"serverinfo?uniqueid={UniqueUuid}&uuid={Guid.NewGuid()}&devicename={deviceName}&updateState={updateState}&phrase={phrase}&salt={salt}&clientcert={clientCert}"));
-        }
-
         public async Task<string> Resume(string riKey, int riKeyId)
         {
             return await HttpClient.GetStringAsync(BuildUri($"resume?uniqueid={UniqueUuid}&uuid={Guid.NewGuid()}&rikey={riKey}&rikeyid{riKeyId}"));
