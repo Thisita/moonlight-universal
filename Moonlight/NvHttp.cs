@@ -32,11 +32,13 @@ namespace Moonlight
 
         public async Task Initialize(CryptoProvider cryptoProvider)
         {
-            HttpBaseProtocolFilter httpBaseProtocolFilter = new HttpBaseProtocolFilter();
+            HttpBaseProtocolFilter httpBaseProtocolFilter = new HttpBaseProtocolFilter
+            {
+                ClientCertificate = await cryptoProvider.GetClientSslCertificate(),
+                AutomaticDecompression = true
+            };
             httpBaseProtocolFilter.IgnorableServerCertificateErrors.Add(ChainValidationResult.Untrusted);
             httpBaseProtocolFilter.IgnorableServerCertificateErrors.Add(ChainValidationResult.InvalidName);
-            httpBaseProtocolFilter.ClientCertificate = await cryptoProvider.GetClientSslCertificate();
-            httpBaseProtocolFilter.AutomaticDecompression = true;
             HttpClient = new HttpClient(httpBaseProtocolFilter);
 
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
