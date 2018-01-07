@@ -25,33 +25,19 @@ namespace Moonlight
         public string DeviceName { get; private set; }
         public Uri BaseAddress { get; private set; }
 
-        public NvHttp(Uri baseAddress)
+        public NvHttp(Uri baseAddress, Certificate clientCertificate)
         {
             BaseAddress = baseAddress;
-        }
-
-        public async Task Initialize(CryptoProvider cryptoProvider)
-        {
+            UniqueUuid = Configuration.UniqueUuid;
+            DeviceName = Configuration.DeviceName;
             HttpBaseProtocolFilter httpBaseProtocolFilter = new HttpBaseProtocolFilter
             {
-                ClientCertificate = await cryptoProvider.GetClientSslCertificate(),
+                ClientCertificate = clientCertificate,
                 AutomaticDecompression = true
             };
             httpBaseProtocolFilter.IgnorableServerCertificateErrors.Add(ChainValidationResult.Untrusted);
             httpBaseProtocolFilter.IgnorableServerCertificateErrors.Add(ChainValidationResult.InvalidName);
             HttpClient = new HttpClient(httpBaseProtocolFilter);
-
-            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-            if (localSettings.Values.ContainsKey("NvHttp.UniqueUuid"))
-            {
-                UniqueUuid = (Guid)localSettings.Values["NvHttp.UniqueUuid"];
-            }
-            else
-            {
-                UniqueUuid = Guid.NewGuid();
-                localSettings.Values["NvHttp.UniqueUuid"] = UniqueUuid;
-            }
-            DeviceName = Dns.GetHostName();
         }
 
         public async Task<List<NvApplication>> ApplicationList(Guid serverUuid)

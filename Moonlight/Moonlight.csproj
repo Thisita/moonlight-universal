@@ -100,6 +100,7 @@
       <DependentUpon>ApplicationsPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="ApplicationsViewModel.cs" />
+    <Compile Include="Configuration.cs" />
     <Compile Include="MainViewModel.cs" />
     <Compile Include="NvGameSession.cs" />
     <Compile Include="StreamPage.xaml.cs">

@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Windows.Security.Cryptography.Certificates;
 using Windows.Storage;
 using Windows.UI.Xaml.Controls;
 using Zeroconf;
@@ -34,18 +35,13 @@ namespace Moonlight
         public NvServerInfo.NvPairStatus Paired { get; private set; }
         public bool EnhancedSecurity { get { return ServerInfo.AppVersion.CompareTo("7.0.0.0") >= 1; } }
 
-        public NvStreamDevice(IPAddress ipAddress, CryptoProvider cryptoProvider)
+        public NvStreamDevice(IPAddress ipAddress, CryptoProvider cryptoProvider, Certificate clientCertificate)
         {
             IPAddress = ipAddress;
             CryptoProvider = cryptoProvider;
-            NvHttp = new NvHttp(new Uri($"http://{IPAddress}:{HTTP_PORT}/"));
+            NvHttp = new NvHttp(new Uri($"http://{IPAddress}:{HTTP_PORT}/"), clientCertificate);
             Online = false;
             Paired = NvServerInfo.NvPairStatus.Unpaired;
-        }
-
-        public async Task Initialize()
-        {
-            await NvHttp.Initialize(CryptoProvider);
         }
 
         public async Task QueryDataInsecure()
@@ -59,8 +55,7 @@ namespace Moonlight
 
         private async Task InitializeSecureClient()
         {
-            SecureNvHttp = new NvHttp(new Uri($"https://{IPAddress}:{ServerInfo.HttpsPort}/"));
-            await SecureNvHttp.Initialize(CryptoProvider);
+            SecureNvHttp = new NvHttp(new Uri($"https://{IPAddress}:{ServerInfo.HttpsPort}/"), await CryptoProvider.GetClientSslCertificate());
         }
 
         public async Task QueryDataSecure()
@@ -197,11 +192,10 @@ namespace Moonlight
 
         public static async Task<NvStreamDevice> InitializeStreamDeviceAsync(IPAddress ip, CryptoProvider cryptoProvider)
         {
-            NvStreamDevice streamDevice = new NvStreamDevice(ip, cryptoProvider)
+            NvStreamDevice streamDevice = new NvStreamDevice(ip, cryptoProvider, await cryptoProvider.GetClientSslCertificate())
             {
                 Online = true
             };
-            await streamDevice.Initialize();
             await streamDevice.QueryDataInsecure();
             return streamDevice;
         }
