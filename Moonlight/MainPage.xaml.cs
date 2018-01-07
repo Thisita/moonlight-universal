@@ -60,7 +60,7 @@ namespace Moonlight
         {
             StreamDevicesGridView.ItemsSource = ViewModel.StreamDevices;
             ViewModel.IsSearching = true;
-            (await NvStreamDevice.DiscoverStreamDevices(CryptoProvider)).ForEach(ViewModel.StreamDevices.Add);
+            (await NvStreamDevice.DiscoverStreamDevices(CryptoProvider)).ToList().ForEach(ViewModel.StreamDevices.Add);
             ViewModel.IsSearching = false;
         }
 

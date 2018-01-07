@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -19,8 +20,8 @@ namespace Moonlight
 {
     public class NvHttp
     {
+        private HttpClient HttpClient { get; set; }
         public Guid UniqueUuid { get; private set; }
-        public HttpClient HttpClient { get; private set; }
         public string DeviceName { get; private set; }
         public Uri BaseAddress { get; private set; }
 
@@ -51,20 +52,37 @@ namespace Moonlight
             DeviceName = Dns.GetHostName();
         }
 
-        public async Task<NvApplicationList> ApplicationList()
+        public async Task<List<NvApplication>> ApplicationList(Guid serverUuid)
         {
+            NvApplicationList applicationList;
             using (TextReader reader = new StringReader(await HttpClient.GetStringAsync(BuildUri($"applist?uniqueid={UniqueUuid}&uuid={Guid.NewGuid()}"))))
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(NvApplicationList));
-                return serializer.Deserialize(reader) as NvApplicationList;
+                applicationList = serializer.Deserialize(reader) as NvApplicationList;
             }
+            List<Task> saveBoxArtTasks = new List<Task>();
+            foreach (NvApplication application in applicationList.Applications)
+            {
+                saveBoxArtTasks.Add(SaveBoxArt(serverUuid, application));
+            }
+            await Task.WhenAll(saveBoxArtTasks);
+            return applicationList.Applications;
         }
 
-        public async Task SaveBoxArt(Guid serverUuid, int applicationId)
+        private async Task SaveBoxArt(Guid serverUuid, NvApplication application)
         {
-            StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
-            StorageFile tempFile = await tempFolder.CreateFileAsync($"{serverUuid}-{applicationId}-boxart.png", CreationCollisionOption.ReplaceExisting);
-            await FileIO.WriteBufferAsync(tempFile, await HttpClient.GetBufferAsync(BuildUri($"appasset?uniqueid={UniqueUuid}&uuid={Guid.NewGuid()}&appid={applicationId}&AssetType=2&AssetIdx=0")));
+            try
+            {
+                StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
+                StorageFile tempFile = await tempFolder.CreateFileAsync($"{serverUuid}-{application.ID}-boxart.png", CreationCollisionOption.ReplaceExisting);
+                await FileIO.WriteBufferAsync(tempFile, await HttpClient.GetBufferAsync(BuildUri($"appasset?uniqueid={UniqueUuid}&uuid={Guid.NewGuid()}&appid={application.ID}&AssetType=2&AssetIdx=0")));
+                application.BoxArt = tempFile.Path;
+            }
+            catch (COMException ex)
+            {
+                application.BoxArt = " ";
+                Debug.WriteLine("Failed to get box art for {0}: {1}", application.Title, ex.Message);
+            }
         }
 
         public async Task<string> Cancel()

@@ -3,10 +3,12 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.X509;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -185,18 +187,7 @@ namespace Moonlight
 
         public async Task<List<NvApplication>> GetApplications()
         {
-            List<NvApplication> applications = (await SecureNvHttp.ApplicationList()).Applications;
-
-            // Cache all of the box art
-            foreach (NvApplication application in applications)
-            {
-                await SecureNvHttp.SaveBoxArt(SecureServerInfo.UniqueId, application.ID);
-                StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
-                StorageFile tempFile = await tempFolder.GetFileAsync($"{SecureServerInfo.UniqueId}-{application.ID}-boxart.png");
-                application.BoxArt = tempFile.Path;
-            }
-
-            return applications;
+            return await SecureNvHttp.ApplicationList(SecureServerInfo.UniqueId);
         }
 
         public async Task<NvGameSession> LaunchApplication(NvApplication application)
@@ -204,22 +195,25 @@ namespace Moonlight
             return await SecureNvHttp.Launch(application.ID, string.Empty, 0, 1, string.Empty, 0, 0, 0);
         }
 
-        public static async Task<List<NvStreamDevice>> DiscoverStreamDevices(CryptoProvider cryptoProvider)
+        public static async Task<NvStreamDevice> InitializeStreamDeviceAsync(IPAddress ip, CryptoProvider cryptoProvider)
         {
-            List<NvStreamDevice> streamDevices = new List<NvStreamDevice>();
-            IReadOnlyList<IZeroconfHost> results = await
-                ZeroconfResolver.ResolveAsync(ZEROCONF_PROTOCOL);
-            foreach (var result in results)
+            NvStreamDevice streamDevice = new NvStreamDevice(ip, cryptoProvider)
             {
-                NvStreamDevice streamDevice = new NvStreamDevice(IPAddress.Parse(result.IPAddress), cryptoProvider)
-                {
-                    Online = true
-                };
-                await streamDevice.Initialize();
-                await streamDevice.QueryDataInsecure();
-                streamDevices.Add(streamDevice);
+                Online = true
+            };
+            await streamDevice.Initialize();
+            await streamDevice.QueryDataInsecure();
+            return streamDevice;
+        }
+
+        public static async Task<IEnumerable<NvStreamDevice>> DiscoverStreamDevices(CryptoProvider cryptoProvider)
+        {
+            List<Task<NvStreamDevice>> streamDeviceInitTasks = new List<Task<NvStreamDevice>>();
+            foreach (var result in await ZeroconfResolver.ResolveAsync(ZEROCONF_PROTOCOL))
+            {
+                streamDeviceInitTasks.Add(InitializeStreamDeviceAsync(IPAddress.Parse(result.IPAddress), cryptoProvider));
             }
-            return streamDevices;
+            return await Task.WhenAll(streamDeviceInitTasks);
         }
     }
 }
