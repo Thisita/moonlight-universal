@@ -178,7 +178,7 @@ namespace Moonlight
             return await SecureNvHttp.ApplicationList(SecureServerInfo.UniqueId);
         }
 
-        public async Task<NvGameSession> LaunchApplication(NvApplication application)
+        public async Task<NvLaunch> LaunchApplication(NvApplication application)
         {
             return await SecureNvHttp.Launch(application.ID, string.Empty, 0, 1, string.Empty, 0, 0, 0);
         }

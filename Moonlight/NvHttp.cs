@@ -72,13 +72,12 @@ namespace Moonlight
             return await HttpClient.GetStringAsync(BuildUri($"cancel?uniqueid={UniqueUuid}&uuid={Guid.NewGuid()}"));
         }
 
-        public async Task<NvGameSession> Launch(int appId, string mode, int additionalStates, int sops, string riKey, int riKeyId, int localAudioPlayMode, int surroundAudioInfo)
+        public async Task<NvLaunch> Launch(int appId, string mode, int additionalStates, int sops, string riKey, int riKeyId, int localAudioPlayMode, int surroundAudioInfo)
         {
             using (TextReader reader = new StringReader(await HttpClient.GetStringAsync(BuildUri($"launch?uniqueid={UniqueUuid}&uuid={Guid.NewGuid()}&appid={appId}&mode={mode}&additionalStates={additionalStates}&rikey={riKey}&rikeyid={riKeyId}&localAudioPlayMode={localAudioPlayMode}&surroundAudioInfo={surroundAudioInfo}"))))
             {
-                Debug.WriteLine(reader.ReadToEnd());
-                XmlSerializer serializer = new XmlSerializer(typeof(NvServerInfo));
-                return serializer.Deserialize(reader) as NvGameSession;
+                XmlSerializer serializer = new XmlSerializer(typeof(NvLaunch));
+                return serializer.Deserialize(reader) as NvLaunch;
             }
         }
 
