@@ -21,7 +21,7 @@ namespace Moonlight
         [XmlElement(ElementName = "isBusy")]
         public bool IsBusy { get; set; }
         [XmlElement(ElementName = "paired")]
-        public bool Paired { get; set; }
+        public int Paired { get; set; }
         [XmlElement(ElementName = "pairingsecret")]
         public string PairingSecret { get; set; }
         [XmlElement(ElementName = "plaincert")]
