@@ -14,10 +14,7 @@ namespace Moonlight
             set
             {
                 _isSearching = value;
-                if(PropertyChanged != null)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs("IsSearching"));
-                }
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsSearching"));
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;

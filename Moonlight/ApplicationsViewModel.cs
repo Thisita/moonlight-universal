@@ -14,10 +14,7 @@ namespace Moonlight
             set
             {
                 _streamDevice = value;
-                if(PropertyChanged != null)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs("StreamDevice"));
-                }
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("StreamDevice"));
             }
         }
         private Boolean _isSearching = false;
@@ -27,10 +24,7 @@ namespace Moonlight
             set
             {
                 _isSearching = value;
-                if(PropertyChanged != null)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs("IsSearching"));
-                }
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsSearching"));
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;
