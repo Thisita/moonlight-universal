@@ -19,9 +19,9 @@ namespace Moonlight
         [XmlElement(ElementName = "encodedcipher")]
         public string EncodedCipher { get; set; }
         [XmlElement(ElementName = "isBusy")]
-        public int IsBusy { get; set; }
+        public bool IsBusy { get; set; }
         [XmlElement(ElementName = "paired")]
-        public int Paired { get; set; }
+        public bool Paired { get; set; }
         [XmlElement(ElementName = "pairingsecret")]
         public string PairingSecret { get; set; }
         [XmlElement(ElementName = "plaincert")]

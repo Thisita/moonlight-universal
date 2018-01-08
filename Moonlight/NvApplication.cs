@@ -12,14 +12,14 @@ namespace Moonlight
         public string Distributor { get; set; }
         public int ID { get; set; }
         [XmlElement(ElementName = "IsAppCollectorGame")]
-        public int IsApplicationCollectorGame { get; set; }
-        public int IsHdrSupported { get; set; }
+        public bool IsApplicationCollectorGame { get; set; }
+        public bool IsHdrSupported { get; set; }
         public int MaxControllersForSingleSession { get; set; }
         public string ShortName { get; set; }
         // SupportedSOPs
         public string UniqueId { get; set; }
         [XmlElement(ElementName = "simulateControllers")]
-        public int SimulateControllers { get; set; }
+        public bool SimulateControllers { get; set; }
         [XmlIgnore]
         public string BoxArt { get; set; }
     }
