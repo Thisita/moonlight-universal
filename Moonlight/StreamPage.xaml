@@ -12,7 +12,7 @@
             <RowDefinition/>
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <MediaElement Source="{x:Bind ViewModel.GameSession.StreamUrl, Mode=OneWay}"
+        <MediaElement Source="{x:Bind ViewModel.Launch.GameSession, Mode=OneWay}"
                       Grid.Row="0" />
         <StackPanel Visibility="{x:Bind ViewModel.IsConnecting, Mode=OneWay}"
             Grid.Row="1"

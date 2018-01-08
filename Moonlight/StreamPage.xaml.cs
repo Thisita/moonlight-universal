@@ -33,7 +33,7 @@ namespace Moonlight
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            ViewModel.GameSession = e.Parameter as NvGameSession;
+            ViewModel.Launch = e.Parameter as NvLaunch;
             base.OnNavigatedTo(e);
         }
     }

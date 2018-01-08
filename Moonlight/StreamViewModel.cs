@@ -12,10 +12,7 @@ namespace Moonlight
             set
             {
                 _isConnecting = value;
-                if (PropertyChanged != null)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs("IsConnecting"));
-                }
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsConnecting"));
             }
         }
         private string _connectionStatus;
@@ -25,23 +22,17 @@ namespace Moonlight
             set
             {
                 _connectionStatus = value;
-                if (PropertyChanged != null)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs("ConnectionStatus"));
-                }
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConnectionStatus"));
             }
         }
-        private NvGameSession _gameSession;
-        public NvGameSession GameSession
+        private NvLaunch _launch;
+        public NvLaunch Launch
         {
-            get { return _gameSession; }
+            get { return _launch; }
             set
             {
-                _gameSession = value;
-                if (PropertyChanged != null)
-                {
-                    PropertyChanged(this, new PropertyChangedEventArgs("GameSession"));
-                }
+                _launch = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Launch"));
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;
