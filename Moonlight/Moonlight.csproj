@@ -102,7 +102,7 @@
     <Compile Include="ApplicationsViewModel.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="MainViewModel.cs" />
-    <Compile Include="NvGameSession.cs" />
+    <Compile Include="NvLaunch.cs" />
     <Compile Include="StreamPage.xaml.cs">
       <DependentUpon>StreamPage.xaml</DependentUpon>
     </Compile>
